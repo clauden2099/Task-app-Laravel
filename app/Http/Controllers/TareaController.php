@@ -2,40 +2,57 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TareaRequest;
+use App\Http\Resources\TareaResource;
 use App\Models\Lista;
 use App\Models\Tarea;
-use Illuminate\Http\Request;
 
 class TareaController extends Controller
 {
     public function index(Lista $lista)
     {
         $tareas = Tarea::where('lista_id', '=', $lista->id)->get();
-        return response()->json($tareas);
+
+        return TareaResource::collection($tareas);
     }
 
-    public function getDestacadas(){
-        $tareas = Tarea::where('destacada',true)->get();
-
-        return response()->json($tareas);
-    }
-    
-    public function show(Tarea $tarea){
-        return response()->json($tarea);
-    }
-
-    public function store(Request $request)
+    public function getDestacadas()
     {
-        $tarea = Tarea::create($request->all());
+        $tareas = Tarea::where('destacada', true)->get();
 
-        return response()->json($tarea);
+        return TareaResource::collection($tareas);
     }
 
-    public function update(Request $request, Tarea $tarea)
+    public function show(Tarea $tarea)
     {
-        $tarea->update($request->all());
+        return new TareaResource($tarea);
+    }
 
-        return response()->json(['message' => 'Producto actualizado']);
+    public function store(TareaRequest $request)
+    {
+
+        /**
+         *  Ejecuta la validaciones del formRequest de tarea
+         * el método validated() regresa los campos qué están definidos
+         * en el método rules() y que hayan pasado la validación
+         */
+        $validateData = $request->validated();
+
+        $tarea = Tarea::create($validateData);
+
+        return (new TareaResource($tarea))
+            ->response()
+            ->setStatusCode(201);
+    }
+
+    public function update(TareaRequest $request, Tarea $tarea)
+    {
+        $validateData = $request->validated();
+        $tarea->update($validateData);
+
+        return (new TareaResource($tarea))
+            ->response()
+            ->setStatusCode(200);
     }
 
     public function destroy(Tarea $tarea)
@@ -43,7 +60,7 @@ class TareaController extends Controller
         $tarea->delete();
 
         return response()->json([
-            'message' => 'Tarea eliminada exitosamente'
+            'message' => 'Tarea eliminada exitosamente',
         ]);
     }
 }

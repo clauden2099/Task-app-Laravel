@@ -2,29 +2,48 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListaRequest;
+use App\Http\Resources\ListaResource;
 use App\Models\Lista;
-use App\Models\Tarea;
-use Illuminate\Http\Request;
 
 class ListaController extends Controller
 {
     public function index()
     {
-        $listas = Lista::all();
+        // Carga las listas e incluye el conteo de tareas
+        $listas = Lista::withCount('tareas')->get();
 
-        return response()->json($listas);
+        return ListaResource::collection($listas);
     }
-    public function store(Request $request)
+
+    public function show(Lista $lista)
     {
+        $lista->loadCount('tareas');
 
-        $lista = Lista::create($request->all());
-
-        return response()->json($lista);
+        return new ListaResource($lista);
     }
 
-    public function update(Request $request, Lista $lista){
-        $lista->update($request->all());
-        return response()->json(['message' => 'Producto actualizado']);
+    public function store(ListaRequest $request)
+    {
+        // Validación de los campos
+        $validateData = $request->validated();
+        $lista = Lista::create($validateData);
+
+        return (new ListaResource($lista))
+            ->response()
+            ->setStatusCode(201);
+    }
+
+    public function update(ListaRequest $request, Lista $lista)
+    {
+        // Validación de los campos
+        $validateData = $request->validated();
+
+        $lista->update($validateData);
+
+        return (new ListaResource($lista))
+            ->response()
+            ->setStatusCode(200);
     }
 
     public function destroy(Lista $lista)
@@ -32,7 +51,7 @@ class ListaController extends Controller
         $lista->delete();
 
         return response()->json([
-            'message' => 'Lista eliminada exitosamente'
-        ]);
+            'message' => 'Lista eliminada correctamente',
+        ], 200);
     }
 }

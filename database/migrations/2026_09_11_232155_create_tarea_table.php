@@ -17,8 +17,8 @@ return new class extends Migration
             $table->text('detalles')->nullable();
             $table->date('fecha_limite')->nullable();
             $table->datetime('recordatorio')->nullable();
-            $table->boolean('destacada')->nullable();
-            $table->boolean('completada')->nullable();
+            $table->boolean('destacada')->default(false);
+            $table->boolean('completada')->default(false);
             $table->unsignedBigInteger('lista_id');
             $table->foreign('lista_id')->references('id')->on('lista')->onDelete('cascade');
             $table->timestamps();
